@@ -373,8 +373,8 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 			return fmt.Errorf("parseLine: line=%d bad vertex texture=[%s] size=%d", p.lineCount, tex, size), NON_FATAL
 		}
 		if size > 2 {
-			if w := t[2]; closeToZero(w) {
-				options.log(fmt.Sprintf("parseLine: line=%d non-zero third texture coordinate w=%f", p.lineCount, w))
+			if w := t[2]; !closeToZero(w) {
+				options.log(fmt.Sprintf("parseLine: line=%d non-zero third texture coordinate w=%f: [%v]", p.lineCount, w, line))
 			}
 		}
 		p.textCoord = append(p.textCoord, float32(t[0]), float32(t[1]))
