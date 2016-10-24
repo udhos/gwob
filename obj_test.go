@@ -5,6 +5,30 @@ import (
 	"testing"
 )
 
+func BenchmarkCube1(b *testing.B) {
+	buf := []byte(cubeObj)
+	options := &ObjParserOptions{}
+	for i := 0; i < b.N; i++ {
+		NewObjFromBuf(buf, options)
+	}
+}
+
+func BenchmarkRelativeIndex1(b *testing.B) {
+	buf := []byte(relativeObj)
+	options := &ObjParserOptions{}
+	for i := 0; i < b.N; i++ {
+		NewObjFromBuf(buf, options)
+	}
+}
+
+func BenchmarkForwardVertex1(b *testing.B) {
+	buf := []byte(forwardObj)
+	options := &ObjParserOptions{}
+	for i := 0; i < b.N; i++ {
+		NewObjFromBuf(buf, options)
+	}
+}
+
 const LOG_STATS = false
 
 func expectInt(t *testing.T, label string, want, got int) {
