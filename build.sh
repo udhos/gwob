@@ -18,13 +18,13 @@ msg install
 go install
 
 msg gosimple
-[ -x ~go/bin/gosimple ] && ~go/bin/gosimple *.go
+hash gosimple 2>/dev/null && gosimple *.go
 
 msg golint
-[ -x ~go/bin/golint ] && ~go/bin/golint *.go
+hash golint 2>/dev/null && golint *.go
 
 msg staticcheck
-[ -x ~go/bin/staticcheck ] && ~go/bin/staticcheck *.go
+hash staticcheck 2>/dev/null && staticcheck *.go
 
 msg test
 go test
