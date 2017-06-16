@@ -3,7 +3,6 @@ package gwob
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -217,9 +216,7 @@ func NewObjFromVertex(coord []float32, indices []int) (*Obj, error) {
 
 	group := o.newGroup("", "", 0, 0)
 
-	for _, c := range coord {
-		o.Coord = append(o.Coord, c)
-	}
+	o.Coord = append(o.Coord, coord...)
 	for _, ind := range indices {
 		pushIndex(group, o, ind)
 	}
@@ -333,7 +330,7 @@ func readLines(p *objParser, o *Obj, reader lineReader, options *ObjParserOption
 
 		if err != nil {
 			// unexpected IO error
-			return errors.New(fmt.Sprintf("readLines: error: %v", err)), FATAL
+			return fmt.Errorf("readLines: error: %v", err), FATAL
 		}
 
 		if e, fatal := parseLineVertex(p, o, line, options); e != nil {
