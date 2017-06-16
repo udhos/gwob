@@ -258,7 +258,7 @@ func setupStride(o *Obj) {
 func readObj(reader lineReader, options *ObjParserOptions) (*Obj, error) {
 
 	if options == nil {
-		options = &ObjParserOptions{LogStats: true, Logger: func(msg string) { fmt.Printf(msg) }}
+		options = &ObjParserOptions{LogStats: true, Logger: func(msg string) { fmt.Print(msg) }}
 	}
 
 	p := &objParser{indexTable: make(map[string]int)}
