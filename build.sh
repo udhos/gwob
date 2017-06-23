@@ -29,3 +29,5 @@ hash staticcheck 2>/dev/null && staticcheck *.go
 msg test
 go test
 
+msg bench
+go test -bench=.
