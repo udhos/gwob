@@ -211,7 +211,7 @@ func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
 
 //type lineParser func(p *objParser, o *Obj, rawLine string) (error, bool)
 
-func NewObjFromVertex(coord []float32, indices []int) (*Obj, error) {
+func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
 	o := &Obj{}
 
 	group := o.newGroup("", "", 0, 0)
@@ -226,12 +226,12 @@ func NewObjFromVertex(coord []float32, indices []int) (*Obj, error) {
 	return o, nil
 }
 
-func NewObjFromBuf(buf []byte, options *ObjParserOptions) (*Obj, error) {
-	return readObj(bytes.NewBuffer(buf), options)
+func NewObjFromBuf(objName string, buf []byte, options *ObjParserOptions) (*Obj, error) {
+	return readObj(objName, bytes.NewBuffer(buf), options)
 }
 
-func NewObjFromReader(rd *bufio.Reader, options *ObjParserOptions) (*Obj, error) {
-	return readObj(rd, options)
+func NewObjFromReader(objName string, rd *bufio.Reader, options *ObjParserOptions) (*Obj, error) {
+	return readObj(objName, rd, options)
 }
 
 type lineReader interface {
@@ -255,7 +255,7 @@ func setupStride(o *Obj) {
 	}
 }
 
-func readObj(reader lineReader, options *ObjParserOptions) (*Obj, error) {
+func readObj(objName string, reader lineReader, options *ObjParserOptions) (*Obj, error) {
 
 	if options == nil {
 		options = &ObjParserOptions{LogStats: true, Logger: func(msg string) { fmt.Print(msg) }}
@@ -292,7 +292,7 @@ func readObj(reader lineReader, options *ObjParserOptions) (*Obj, error) {
 		case g.IndexCount < 0:
 			continue // discard empty bogus group created internally by parser
 		case g.IndexCount < 3:
-			options.log(fmt.Sprintf("readObj: BAD GROUP SIZE group=%s size=%d < 3", g.Name, g.IndexCount))
+			options.log(fmt.Sprintf("readObj: obj=%s BAD GROUP SIZE group=%s size=%d < 3", objName, g.Name, g.IndexCount))
 		}
 		tmp = append(tmp, g)
 	}

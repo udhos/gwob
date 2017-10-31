@@ -9,7 +9,7 @@ func BenchmarkCube1(b *testing.B) {
 	buf := []byte(cubeObj)
 	options := &ObjParserOptions{}
 	for i := 0; i < b.N; i++ {
-		NewObjFromBuf(buf, options)
+		NewObjFromBuf("cubeObj", buf, options)
 	}
 }
 
@@ -17,7 +17,7 @@ func BenchmarkRelativeIndex1(b *testing.B) {
 	buf := []byte(relativeObj)
 	options := &ObjParserOptions{}
 	for i := 0; i < b.N; i++ {
-		NewObjFromBuf(buf, options)
+		NewObjFromBuf("relativeObj", buf, options)
 	}
 }
 
@@ -25,7 +25,7 @@ func BenchmarkForwardVertex1(b *testing.B) {
 	buf := []byte(forwardObj)
 	options := &ObjParserOptions{}
 	for i := 0; i < b.N; i++ {
-		NewObjFromBuf(buf, options)
+		NewObjFromBuf("forwardObj", buf, options)
 	}
 }
 
@@ -69,7 +69,7 @@ func TestCube(t *testing.T) {
 
 	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
 
-	o, err := NewObjFromBuf([]byte(cubeObj), &options)
+	o, err := NewObjFromBuf("cubeObj", []byte(cubeObj), &options)
 	if err != nil {
 		t.Errorf("TestCube: NewObjFromBuf: %v", err)
 		return
@@ -104,7 +104,7 @@ func TestRelativeIndex(t *testing.T) {
 
 	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestRelativeIndex NewObjFromBuf: log: %s\n", msg) }}
 
-	o, err := NewObjFromBuf([]byte(relativeObj), &options)
+	o, err := NewObjFromBuf("relativeObj", []byte(relativeObj), &options)
 	if err != nil {
 		t.Errorf("TestRelativeIndex: NewObjFromBuf: %v", err)
 		return
@@ -125,7 +125,7 @@ func TestForwardVertex(t *testing.T) {
 
 	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestForwardVertex NewObjFromBuf: log: %s\n", msg) }}
 
-	o, err := NewObjFromBuf([]byte(forwardObj), &options)
+	o, err := NewObjFromBuf("forwardObj", []byte(forwardObj), &options)
 	if err != nil {
 		t.Errorf("TestForwardVertex: NewObjFromBuf: %v", err)
 		return
@@ -153,7 +153,7 @@ s 1
 
 	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestMisc NewObjFromBuf: log: %s\n", msg) }}
 
-	NewObjFromBuf([]byte(str), &options)
+	NewObjFromBuf("TestMisc local str obj", []byte(str), &options)
 }
 
 var cubeStrideSize = 32
