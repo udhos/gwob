@@ -455,7 +455,7 @@ func pushIndex(currGroup *Group, o *Obj, i int) {
 }
 
 func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) error {
-	ind := splitSlash(index)
+	ind := splitSlash(strings.Replace(index, "//", "/0/", 1))
 	size := len(ind)
 	if size < 1 || size > 3 {
 		return fmt.Errorf("addVertex: line=%d bad index=[%s] size=%d", p.lineCount, index, size)
@@ -469,7 +469,8 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 
 	var ti int
 	var tIndex string
-	if size > 1 {
+	hasTextureCoord := strings.Index(index, "//") == -1 && size > 1
+	if hasTextureCoord {
 		t, e := strconv.ParseInt(ind[1], 10, 32)
 		if e != nil {
 			return fmt.Errorf("addVertex: line=%d bad integer 2nd index=[%s]: %v", p.lineCount, ind[1], e)
@@ -506,7 +507,7 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 	o.Coord = append(o.Coord, p.vertCoord[vOffset+1]) // y
 	o.Coord = append(o.Coord, p.vertCoord[vOffset+2]) // z
 
-	if tIndex != "" {
+	if tIndex != "" && hasTextureCoord {
 		tOffset := ti * 2
 		//fmt.Printf("ti=%d tOffset=%d textCoord=%v len=%d\n", ti, tOffset, p.textCoord, len(p.textCoord))
 
