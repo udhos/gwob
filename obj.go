@@ -498,6 +498,10 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 	}
 
 	vOffset := vi * 3
+	if vOffset+2 >= len(p.vertCoord) {
+		return fmt.Errorf("err: line=%d invalid vertex index=[%s]", p.lineCount, ind[0])
+	}
+
 	o.Coord = append(o.Coord, p.vertCoord[vOffset+0]) // x
 	o.Coord = append(o.Coord, p.vertCoord[vOffset+1]) // y
 	o.Coord = append(o.Coord, p.vertCoord[vOffset+2]) // z
@@ -505,6 +509,11 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 	if tIndex != "" {
 		tOffset := ti * 2
 		//fmt.Printf("ti=%d tOffset=%d textCoord=%v len=%d\n", ti, tOffset, p.textCoord, len(p.textCoord))
+
+		if tOffset+1 >= len(p.textCoord) {
+			return fmt.Errorf("err: line=%d invalid texture index=[%s]", p.lineCount, ind[1])
+		}
+
 		o.Coord = append(o.Coord, p.textCoord[tOffset+0]) // u
 		o.Coord = append(o.Coord, p.textCoord[tOffset+1]) // v
 		o.TextCoordFound = true
