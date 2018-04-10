@@ -181,16 +181,16 @@ func TestSkippedUV2(t *testing.T) {
 
 	o, err := NewObjFromBuf("skippedUV2", []byte(skippedUV2Obj), &options)
 	if err != nil {
-		t.Errorf("TestSkippedUV: NewObjFromBuf: %v", err)
+		t.Errorf("TestSkippedUV2: NewObjFromBuf: %v", err)
 		return
 	}
 
 	if !sliceEqualInt(skippedUV2Indices, o.Indices) {
-		t.Errorf("TestSkippedUV: indices: want=%v got=%v", skippedUV2Indices, o.Indices)
+		t.Errorf("TestSkippedUV2: indices: want=%v got=%v", skippedUV2Indices, o.Indices)
 	}
 
 	if !sliceEqualFloat(skippedUV2Coord, o.Coord) {
-		t.Errorf("TestSkippedUV: coord: want=%v got=%v", skippedUV2Coord, o.Coord)
+		t.Errorf("TestSkippedUV2: coord: want=%v got=%v", skippedUV2Coord, o.Coord)
 	}
 }
 
