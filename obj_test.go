@@ -156,6 +156,44 @@ s 1
 	NewObjFromBuf("TestMisc local str obj", []byte(str), &options)
 }
 
+func TestSkippedUV1(t *testing.T) {
+
+	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestSkippedUV NewObjFromBuf: log: %s\n", msg) }}
+
+	o, err := NewObjFromBuf("skippedUV", []byte(skippedUVObj), &options)
+	if err != nil {
+		t.Errorf("TestSkippedUV: NewObjFromBuf: %v", err)
+		return
+	}
+
+	if !sliceEqualInt(skippedUVIndices, o.Indices) {
+		t.Errorf("TestSkippedUV: indices: want=%v got=%v", skippedUVIndices, o.Indices)
+	}
+
+	if !sliceEqualFloat(skippedUVCoord, o.Coord) {
+		t.Errorf("TestSkippedUV: coord: want=%v got=%v", skippedUVCoord, o.Coord)
+	}
+}
+
+func TestSkippedUV2(t *testing.T) {
+
+	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestSkippedUV2 NewObjFromBuf: log: %s\n", msg) }}
+
+	o, err := NewObjFromBuf("skippedUV2", []byte(skippedUV2Obj), &options)
+	if err != nil {
+		t.Errorf("TestSkippedUV: NewObjFromBuf: %v", err)
+		return
+	}
+
+	if !sliceEqualInt(skippedUV2Indices, o.Indices) {
+		t.Errorf("TestSkippedUV: indices: want=%v got=%v", skippedUV2Indices, o.Indices)
+	}
+
+	if !sliceEqualFloat(skippedUV2Coord, o.Coord) {
+		t.Errorf("TestSkippedUV: coord: want=%v got=%v", skippedUV2Coord, o.Coord)
+	}
+}
+
 var cubeStrideSize = 32
 var cubeStrideOffsetPosition = 0
 var cubeStrideOffsetTexture = 12
@@ -276,3 +314,43 @@ v 1 1 1
 v 2 2 2
 v 3 3 3
 `
+
+var skippedUVObj = `
+
+o skipped_uv
+
+v 1 1 1
+v 2 2 2
+v 3 3 3
+
+vn 1 0 0
+vn 0 1 0
+vn 0 0 1
+
+f 1//1 2//2 3//3 
+`
+
+var skippedUVIndices = []int{0, 1, 2}
+var skippedUVCoord = []float32{1, 1, 1, 1, 0, 0, 2, 2, 2, 0, 1, 0, 3, 3, 3, 0, 0, 1}
+
+var skippedUV2Obj = `
+
+o skipped_uv
+
+v 1 1 1
+v 2 2 2
+v 3 3 3
+
+vt 0 0
+vt .5 .5
+vt 1 1
+
+vn 1 0 0
+vn 0 1 0
+vn 0 0 1
+
+f 1//1 2//2 3//3 
+`
+
+var skippedUV2Indices = []int{0, 1, 2}
+var skippedUV2Coord = []float32{1, 1, 1, 1, 0, 0, 2, 2, 2, 0, 1, 0, 3, 3, 3, 0, 0, 1}
