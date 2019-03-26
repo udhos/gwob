@@ -25,14 +25,14 @@ func main() {
 		return
 	}
 
-	defer inputObj.Close()
-
 	// Load OBJ
 	o, errObj := gwob.NewObjFromReader(fileObj, bufio.NewReader(inputObj), options)
 	if errObj != nil {
 		log.Printf("obj: parse error input=%s: %v", fileObj, errObj)
 		return
 	}
+
+	inputObj.Close()
 
 	// Open MTL file
 	fileMtl := o.Mtllib
@@ -48,6 +48,8 @@ func main() {
 		log.Printf("mtl: parse error input=%s: %v", fileMtl, errMtl)
 		return
 	}
+
+	inputMtl.Close()
 
 	// Scan OBJ groups
 	for _, g := range o.Groups {

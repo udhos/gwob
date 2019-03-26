@@ -5,17 +5,34 @@
 # gwob
 gwob - Pure Go Golang parser for Wavefront .OBJ 3D geometry file format
 
-# Usage
+# Install
 
 Get the package:
 
-    $ go get github.com/udhos/gwob
+## Install with Go Modules (Go 1.11 or higher)
+
+    git clone https://github.com/udhos/gwob
+    cd gwob
+    go install
+
+## Install without Go Modules (Go before 1.11)
+
+    go get github.com/udhos/gwob
+    cd ~/go/src/github.com/udhos/gwob
+    go install github.com/udhos/gwob
+
+# Usage
 
 Import the package in your Go program:
 
     import "github.com/udhos/gwob" 
 
 # Example
+
+Run the example:
+
+    cd example
+    go run main.go
 
 See directory [example](example). 
 
