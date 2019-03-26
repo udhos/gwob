@@ -5,8 +5,7 @@
 # gwob
 gwob - Pure Go Golang parser for Wavefront .OBJ 3D geometry file format
 
-Usage
-=====
+# Usage
 
 Get the package:
 
@@ -15,5 +14,11 @@ Get the package:
 Import the package in your Go program:
 
     import "github.com/udhos/gwob" 
+
+# Example
+
+See directory [example](example). 
+
+# Documentation
 
 See the [GoDoc](http://godoc.org/github.com/udhos/gwob) documentation.

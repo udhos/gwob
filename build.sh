@@ -5,29 +5,14 @@ msg() {
     echo >&2 $me: $*
 }
 
-msg fmt
-gofmt -s -w *.go
-
-msg fix
-go tool fix *.go
-
-msg vet
-go tool vet .
-
-msg install
+gofmt -s -w *.go ./example
+go tool fix *.go ./example
+go vet . ./example
 go install
 
-msg gosimple
-hash gosimple 2>/dev/null && gosimple *.go
+#hash gosimple 2>/dev/null && gosimple *.go
+#hash golint 2>/dev/null && golint *.go
+#hash staticcheck 2>/dev/null && staticcheck *.go
 
-msg golint
-hash golint 2>/dev/null && golint *.go
-
-msg staticcheck
-hash staticcheck 2>/dev/null && staticcheck *.go
-
-msg test
 go test
-
-msg bench
 go test -bench=.
