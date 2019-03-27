@@ -56,7 +56,7 @@ func main() {
 
 		mtl, found := lib.Lib[g.Usemtl]
 		if found {
-			log.Printf("obj=%s lib=%s group=%s material=%s Map_Kd=%s Kd=%v", fileObj, fileMtl, g.Name, g.Usemtl, mtl.Map_Kd, mtl.Kd)
+			log.Printf("obj=%s lib=%s group=%s material=%s MapKd=%s Kd=%v", fileObj, fileMtl, g.Name, g.Usemtl, mtl.MapKd, mtl.Kd)
 			continue
 		}
 

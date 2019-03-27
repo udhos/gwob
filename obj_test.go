@@ -29,7 +29,7 @@ func BenchmarkForwardVertex1(b *testing.B) {
 	}
 }
 
-const LOG_STATS = false
+const LogStats = false
 
 func expectInt(t *testing.T, label string, want, got int) {
 	if want != got {
@@ -67,7 +67,7 @@ func sliceEqualFloat(a, b []float32) bool {
 
 func TestCube(t *testing.T) {
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
 
 	o, err := NewObjFromBuf("cubeObj", []byte(cubeObj), &options)
 	if err != nil {
@@ -102,7 +102,7 @@ func TestCube(t *testing.T) {
 
 func TestRelativeIndex(t *testing.T) {
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestRelativeIndex NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestRelativeIndex NewObjFromBuf: log: %s\n", msg) }}
 
 	o, err := NewObjFromBuf("relativeObj", []byte(relativeObj), &options)
 	if err != nil {
@@ -123,7 +123,7 @@ func TestRelativeIndex(t *testing.T) {
 
 func TestForwardVertex(t *testing.T) {
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestForwardVertex NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestForwardVertex NewObjFromBuf: log: %s\n", msg) }}
 
 	o, err := NewObjFromBuf("forwardObj", []byte(forwardObj), &options)
 	if err != nil {
@@ -151,14 +151,14 @@ s off
 s 1
 `
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestMisc NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestMisc NewObjFromBuf: log: %s\n", msg) }}
 
 	NewObjFromBuf("TestMisc local str obj", []byte(str), &options)
 }
 
 func TestSkippedUV1(t *testing.T) {
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestSkippedUV NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestSkippedUV NewObjFromBuf: log: %s\n", msg) }}
 
 	o, err := NewObjFromBuf("skippedUV", []byte(skippedUVObj), &options)
 	if err != nil {
@@ -177,7 +177,7 @@ func TestSkippedUV1(t *testing.T) {
 
 func TestSkippedUV2(t *testing.T) {
 
-	options := ObjParserOptions{LogStats: LOG_STATS, Logger: func(msg string) { fmt.Printf("TestSkippedUV2 NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestSkippedUV2 NewObjFromBuf: log: %s\n", msg) }}
 
 	o, err := NewObjFromBuf("skippedUV2", []byte(skippedUV2Obj), &options)
 	if err != nil {

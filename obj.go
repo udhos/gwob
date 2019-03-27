@@ -1,7 +1,7 @@
 package gwob
 
 import (
-	"bufio"
+	//"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -10,36 +10,50 @@ import (
 	"strings"
 )
 
-const FATAL = true
-const NON_FATAL = false
+// Internal parsing error
+const (
+	ErrFatal    = true  // ErrFatal means fatal stream error
+	ErrNonFatal = false // ErrNonFatal means non-fatal parsing error
+)
 
+// Material holds information for a material.
 type Material struct {
-	Name   string
-	Map_Kd string
-	Kd     [3]float32
+	Name  string
+	MapKd string
+	Kd    [3]float32
 }
 
+// MaterialLib stores materials.
 type MaterialLib struct {
 	Lib map[string]*Material
 }
 
+// StringReader is input for the parser.
+type StringReader interface {
+	ReadString(delim byte) (string, error) // Example: bufio.Reader
+}
+
+// ReadMaterialLibFromBuf parses material lib from a buffer.
 func ReadMaterialLibFromBuf(buf []byte, options *ObjParserOptions) (MaterialLib, error) {
 	return readLib(bytes.NewBuffer(buf), options)
 }
 
-func ReadMaterialLibFromReader(rd *bufio.Reader, options *ObjParserOptions) (MaterialLib, error) {
+// ReadMaterialLibFromReader parses material lib from a reader.
+func ReadMaterialLibFromReader(rd StringReader, options *ObjParserOptions) (MaterialLib, error) {
 	return readLib(rd, options)
 }
 
+// NewMaterialLib creates a new material lib.
 func NewMaterialLib() MaterialLib {
 	return MaterialLib{Lib: map[string]*Material{}}
 }
 
+// libParser holds auxiliary internal state for the parsing.
 type libParser struct {
 	currMaterial *Material
 }
 
-func readLib(reader lineReader, options *ObjParserOptions) (MaterialLib, error) {
+func readLib(reader StringReader, options *ObjParserOptions) (MaterialLib, error) {
 
 	lineCount := 0
 
@@ -51,7 +65,7 @@ func readLib(reader lineReader, options *ObjParserOptions) (MaterialLib, error) 
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
 			// parse last line
-			if e, _ := parseLibLine(parser, lib, line, lineCount); e != nil {
+			if _, e := parseLibLine(parser, lib, line, lineCount); e != nil {
 				options.log(fmt.Sprintf("readLib: %v", e))
 				return MaterialLib{}, e
 			}
@@ -63,7 +77,7 @@ func readLib(reader lineReader, options *ObjParserOptions) (MaterialLib, error) 
 			return MaterialLib{}, fmt.Errorf("readLib: error: %v", err)
 		}
 
-		if e, fatal := parseLibLine(parser, lib, line, lineCount); e != nil {
+		if fatal, e := parseLibLine(parser, lib, line, lineCount); e != nil {
 			options.log(fmt.Sprintf("readLib: %v", e))
 			if fatal {
 				return MaterialLib{}, e
@@ -74,7 +88,7 @@ func readLib(reader lineReader, options *ObjParserOptions) (MaterialLib, error) 
 	return lib, nil
 }
 
-func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) (error, bool) {
+func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) (bool, error) {
 	line := strings.TrimSpace(rawLine)
 
 	switch {
@@ -95,12 +109,12 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		Kd := line[3:]
 
 		if p.currMaterial == nil {
-			return fmt.Errorf("parseLibLine: %d undefined material for Kd=%s [%s]", lineCount, Kd, line), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Kd=%s [%s]", lineCount, Kd, line)
 		}
 
 		color, err := parseFloatVector3Space(Kd)
 		if err != nil {
-			return fmt.Errorf("parseLibLine: %d parsing error for Kd=%s [%s]: %v", lineCount, Kd, line, err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Kd=%s [%s]: %v", lineCount, Kd, line, err)
 		}
 
 		p.currMaterial.Kd[0] = float32(color[0])
@@ -108,13 +122,13 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.Kd[2] = float32(color[2])
 
 	case strings.HasPrefix(line, "map_Kd "):
-		map_Kd := line[7:]
+		mapKd := line[7:]
 
 		if p.currMaterial == nil {
-			return fmt.Errorf("parseLibLine: %d undefined material for map_Kd=%s [%s]", lineCount, map_Kd, line), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_Kd=%s [%s]", lineCount, mapKd, line)
 		}
 
-		p.currMaterial.Map_Kd = map_Kd
+		p.currMaterial.MapKd = mapKd
 
 	case strings.HasPrefix(line, "map_Ka "):
 	case strings.HasPrefix(line, "map_d "):
@@ -129,12 +143,13 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 	case strings.HasPrefix(line, "Tf "):
 	case strings.HasPrefix(line, "Tr "):
 	default:
-		return fmt.Errorf("parseLibLine %v: [%v]: unexpected", lineCount, line), NON_FATAL
+		return ErrNonFatal, fmt.Errorf("parseLibLine %v: [%v]: unexpected", lineCount, line)
 	}
 
-	return nil, NON_FATAL
+	return ErrNonFatal, nil
 }
 
+// Group holds parser result for a group.
 type Group struct {
 	Name       string
 	Smooth     int
@@ -143,6 +158,7 @@ type Group struct {
 	IndexCount int
 }
 
+// Obj holds parser result for .obj file.
 type Obj struct {
 	Indices []int
 	Coord   []float32 // vertex data pos=(x,y,z) tex=(tx,ty) norm=(nx,ny,nz)
@@ -159,6 +175,7 @@ type Obj struct {
 	StrideOffsetNormal   int // 5 x 4-byte floats
 }
 
+// objParser holds auxiliary internal parser state.
 type objParser struct {
 	lineBuf    []string
 	lineCount  int
@@ -175,6 +192,7 @@ type objParser struct {
 	triangles  int // stat-only
 }
 
+// ObjParserOptions sets options for the parser.
 type ObjParserOptions struct {
 	LogStats      bool
 	Logger        func(string)
@@ -194,14 +212,17 @@ func (o *Obj) newGroup(name, usemtl string, begin int, smooth int) *Group {
 	return gr
 }
 
+// Coord64 gets vertex data as float64.
 func (o *Obj) Coord64(i int) float64 {
 	return float64(o.Coord[i])
 }
 
+// NumberOfElements gets the number of strides.
 func (o *Obj) NumberOfElements() int {
 	return 4 * len(o.Coord) / o.StrideSize
 }
 
+// VertexCoordinates gets vertex coordinates for a stride index.
 func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
 	offset := o.StrideOffsetPosition / 4
 	floatsPerStride := o.StrideSize / 4
@@ -209,8 +230,7 @@ func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
 	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
 }
 
-//type lineParser func(p *objParser, o *Obj, rawLine string) (error, bool)
-
+// NewObjFromVertex creates Obj from vertex data.
 func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
 	o := &Obj{}
 
@@ -226,16 +246,14 @@ func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, err
 	return o, nil
 }
 
+// NewObjFromBuf parses Obj from a buffer.
 func NewObjFromBuf(objName string, buf []byte, options *ObjParserOptions) (*Obj, error) {
 	return readObj(objName, bytes.NewBuffer(buf), options)
 }
 
-func NewObjFromReader(objName string, rd *bufio.Reader, options *ObjParserOptions) (*Obj, error) {
+// NewObjFromReader parses Obj from a reader.
+func NewObjFromReader(objName string, rd StringReader, options *ObjParserOptions) (*Obj, error) {
 	return readObj(objName, rd, options)
-}
-
-type lineReader interface {
-	ReadString(delim byte) (string, error)
 }
 
 func setupStride(o *Obj) {
@@ -255,7 +273,7 @@ func setupStride(o *Obj) {
 	}
 }
 
-func readObj(objName string, reader lineReader, options *ObjParserOptions) (*Obj, error) {
+func readObj(objName string, reader StringReader, options *ObjParserOptions) (*Obj, error) {
 
 	if options == nil {
 		options = &ObjParserOptions{LogStats: true, Logger: func(msg string) { fmt.Print(msg) }}
@@ -265,7 +283,7 @@ func readObj(objName string, reader lineReader, options *ObjParserOptions) (*Obj
 	o := &Obj{}
 
 	// 1. vertex-only parsing
-	if err, fatal := readLines(p, o, reader, options); err != nil {
+	if fatal, err := readLines(p, o, reader, options); err != nil {
 		if fatal {
 			return o, err
 		}
@@ -277,7 +295,7 @@ func readObj(objName string, reader lineReader, options *ObjParserOptions) (*Obj
 	p.normLines = 0
 
 	// 2. full parsing
-	if err, fatal := scanLines(p, o, reader, options); err != nil {
+	if fatal, err := scanLines(p, o, reader, options); err != nil {
 		if fatal {
 			return o, err
 		}
@@ -313,7 +331,7 @@ func readObj(objName string, reader lineReader, options *ObjParserOptions) (*Obj
 	return o, nil
 }
 
-func readLines(p *objParser, o *Obj, reader lineReader, options *ObjParserOptions) (error, bool) {
+func readLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOptions) (bool, error) {
 	p.lineCount = 0
 
 	for {
@@ -321,31 +339,31 @@ func readLines(p *objParser, o *Obj, reader lineReader, options *ObjParserOption
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
 			// parse last line
-			if e, fatal := parseLineVertex(p, o, line, options); e != nil {
+			if fatal, e := parseLineVertex(p, o, line, options); e != nil {
 				options.log(fmt.Sprintf("readLines: %v", e))
-				return e, fatal
+				return fatal, e
 			}
 			break // EOF
 		}
 
 		if err != nil {
 			// unexpected IO error
-			return fmt.Errorf("readLines: error: %v", err), FATAL
+			return ErrFatal, fmt.Errorf("readLines: error: %v", err)
 		}
 
-		if e, fatal := parseLineVertex(p, o, line, options); e != nil {
+		if fatal, e := parseLineVertex(p, o, line, options); e != nil {
 			options.log(fmt.Sprintf("readLines: %v", e))
 			if fatal {
-				return e, fatal
+				return fatal, e
 			}
 		}
 	}
 
-	return nil, NON_FATAL
+	return ErrNonFatal, nil
 }
 
-// parse only vertex linux
-func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOptions) (error, bool) {
+// parseLineVertex: parse only vertex lines
+func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOptions) (bool, error) {
 	line := strings.TrimSpace(rawLine)
 
 	p.lineBuf = append(p.lineBuf, line) // save line for 2nd pass
@@ -363,11 +381,11 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 		tex := line[3:]
 		t, err := parseFloatSliceSpace(tex)
 		if err != nil {
-			return fmt.Errorf("parseLine: line=%d bad vertex texture=[%s]: %v", p.lineCount, tex, err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad vertex texture=[%s]: %v", p.lineCount, tex, err)
 		}
 		size := len(t)
 		if size < 2 || size > 3 {
-			return fmt.Errorf("parseLine: line=%d bad vertex texture=[%s] size=%d", p.lineCount, tex, size), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad vertex texture=[%s] size=%d", p.lineCount, tex, size)
 		}
 		if size > 2 {
 			if w := t[2]; !closeToZero(w) {
@@ -381,7 +399,7 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 		norm := line[3:]
 		n, err := parseFloatVector3Space(norm)
 		if err != nil {
-			return fmt.Errorf("parseLine: line=%d bad vertex normal=[%s]: %v", p.lineCount, norm, err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad vertex normal=[%s]: %v", p.lineCount, norm, err)
 		}
 		p.normCoord = append(p.normCoord, float32(n[0]), float32(n[1]), float32(n[2]))
 
@@ -389,7 +407,7 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 
 		result, err := parseFloatSliceSpace(line[2:])
 		if err != nil {
-			return fmt.Errorf("parseLine %v: [%v]: error: %v", p.lineCount, line, err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine %v: [%v]: error: %v", p.lineCount, line, err)
 		}
 		coordLen := len(result)
 		switch coordLen {
@@ -399,17 +417,17 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 			w := result[3]
 			p.vertCoord = append(p.vertCoord, float32(result[0]/w), float32(result[1]/w), float32(result[2]/w))
 		default:
-			return fmt.Errorf("parseLine %v: [%v]: bad number of coords: %v", p.lineCount, line, coordLen), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine %v: [%v]: bad number of coords: %v", p.lineCount, line, coordLen)
 		}
 
 	default:
-		return fmt.Errorf("parseLine %v: [%v]: unexpected", p.lineCount, line), NON_FATAL
+		return ErrNonFatal, fmt.Errorf("parseLine %v: [%v]: unexpected", p.lineCount, line)
 	}
 
-	return nil, NON_FATAL
+	return ErrNonFatal, nil
 }
 
-func scanLines(p *objParser, o *Obj, reader lineReader, options *ObjParserOptions) (error, bool) {
+func scanLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOptions) (bool, error) {
 
 	p.currGroup = o.newGroup("", "", 0, 0)
 
@@ -418,19 +436,18 @@ func scanLines(p *objParser, o *Obj, reader lineReader, options *ObjParserOption
 	for _, line := range p.lineBuf {
 		p.lineCount++
 
-		if e, fatal := parseLine(p, o, line, options); e != nil {
+		if fatal, e := parseLine(p, o, line, options); e != nil {
 			options.log(fmt.Sprintf("scanLines: %v", e))
 			if fatal {
-				return e, fatal
+				return fatal, e
 			}
 		}
 	}
 
-	return nil, NON_FATAL
+	return ErrNonFatal, nil
 }
 
 func solveRelativeIndex(index, size int) int {
-	//fmt.Printf("index=%d size=%d\n", index, size)
 	if index > 0 {
 		return index - 1
 	}
@@ -509,7 +526,6 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 
 	if tIndex != "" && hasTextureCoord {
 		tOffset := ti * 2
-		//fmt.Printf("ti=%d tOffset=%d textCoord=%v len=%d\n", ti, tOffset, p.textCoord, len(p.textCoord))
 
 		if tOffset+1 >= len(p.textCoord) {
 			return fmt.Errorf("err: line=%d invalid texture index=[%s]", p.lineCount, ind[1])
@@ -523,22 +539,15 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 	if !options.IgnoreNormals && nIndex != "" {
 		nOffset := ni * 3
 
-		//n, _ := strconv.ParseInt(ind[2], 10, 32)
-		//fmt.Printf("addVertex: n=%d ni=%d noffset=%d NORM=%v\n", n, ni, nOffset, p.normCoord)
-		//fmt.Printf("addVertex: COORD 1=%v\n", o.Coord)
-
 		o.Coord = append(o.Coord, p.normCoord[nOffset+0]) // x
 		o.Coord = append(o.Coord, p.normCoord[nOffset+1]) // y
 		o.Coord = append(o.Coord, p.normCoord[nOffset+2]) // z
-
-		//fmt.Printf("addVertex: COORD 2=%v\n", o.Coord)
 
 		o.NormCoordFound = true
 	}
 
 	// add unified index
 	pushIndex(p.currGroup, o, p.indexCount)
-	//fmt.Printf("absIndex=%s indexCount=%d\n", absIndex, p.indexCount)
 	p.indexTable[absIndex] = p.indexCount
 	p.indexCount++
 
@@ -547,12 +556,6 @@ func addVertex(p *objParser, o *Obj, index string, options *ObjParserOptions) er
 
 func smoothGroup(s string) (int, error) {
 	s = strings.ToLower(strings.TrimSpace(s))
-
-	/*
-		if s == "on" {
-			return true, nil
-		}
-	*/
 
 	if s == "off" {
 		return 0, nil
@@ -563,7 +566,7 @@ func smoothGroup(s string) (int, error) {
 	return int(i), err
 }
 
-func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (error, bool) {
+func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (bool, error) {
 
 	switch {
 	case line == "" || line[0] == '#':
@@ -575,7 +578,7 @@ func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (er
 				p.currGroup = o.newGroup(p.currGroup.Name, p.currGroup.Usemtl, len(o.Indices), s)
 			}
 		} else {
-			return fmt.Errorf("parseLine: line=%d bad boolean smooth=[%s]: %v: line=[%v]", p.lineCount, smooth, err, line), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad boolean smooth=[%s]: %v: line=[%v]", p.lineCount, smooth, err, line)
 		}
 	case strings.HasPrefix(line, "o ") || strings.HasPrefix(line, "g "):
 		name := line[2:]
@@ -612,7 +615,7 @@ func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (er
 		f := strings.Fields(face)
 		size := len(f)
 		if size < 3 || size > 4 {
-			return fmt.Errorf("parseLine: line=%d bad face=[%s] size=%d", p.lineCount, face, size), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] size=%d", p.lineCount, face, size)
 		}
 		// triangle face: v0 v1 v2
 		// quad face:
@@ -621,65 +624,38 @@ func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (er
 		// v2 v3 v0
 		p.triangles++
 		if err := addVertex(p, o, f[0], options); err != nil {
-			return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v0=[%s]: %v", p.lineCount, face, f[0], err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v0=[%s]: %v", p.lineCount, face, f[0], err)
 		}
 		if err := addVertex(p, o, f[1], options); err != nil {
-			return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v1=[%s]: %v", p.lineCount, face, f[1], err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v1=[%s]: %v", p.lineCount, face, f[1], err)
 		}
 		if err := addVertex(p, o, f[2], options); err != nil {
-			return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v2=[%s]: %v", p.lineCount, face, f[2], err), NON_FATAL
+			return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v2=[%s]: %v", p.lineCount, face, f[2], err)
 		}
 		if size > 3 {
 			// quad face
 			p.triangles++
 			if err := addVertex(p, o, f[2], options); err != nil {
-				return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v2=[%s]: %v", p.lineCount, face, f[2], err), NON_FATAL
+				return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v2=[%s]: %v", p.lineCount, face, f[2], err)
 			}
 			if err := addVertex(p, o, f[3], options); err != nil {
-				return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v3=[%s]: %v", p.lineCount, face, f[3], err), NON_FATAL
+				return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v3=[%s]: %v", p.lineCount, face, f[3], err)
 			}
 			if err := addVertex(p, o, f[0], options); err != nil {
-				return fmt.Errorf("parseLine: line=%d bad face=[%s] index_v0=[%s]: %v", p.lineCount, face, f[0], err), NON_FATAL
+				return ErrNonFatal, fmt.Errorf("parseLine: line=%d bad face=[%s] index_v0=[%s]: %v", p.lineCount, face, f[0], err)
 			}
 		}
 	case strings.HasPrefix(line, "v "):
 		p.vertLines++
 	case strings.HasPrefix(line, "vt "):
 		p.textLines++
-
-		/*
-			tex := line[3:]
-			t, err := parseFloatSliceSpace(tex)
-			if err != nil {
-				return fmt.Errorf("parseLine: line=%d bad vertex texture=[%s]: %v", p.lineCount, tex, err), NON_FATAL
-			}
-			size := len(t)
-			if size < 2 || size > 3 {
-				return fmt.Errorf("parseLine: line=%d bad vertex texture=[%s] size=%d", p.lineCount, tex, size), NON_FATAL
-			}
-			if size > 2 {
-				if w := t[2]; closeToZero(w) {
-					options.log(fmt.Sprintf("parseLine: line=%d non-zero third texture coordinate w=%f", p.lineCount, w))
-				}
-			}
-			p.textCoord = append(p.textCoord, float32(t[0]), float32(t[1]))
-		*/
 	case strings.HasPrefix(line, "vn "):
 		p.normLines++
-
-		/*
-			norm := line[3:]
-			n, err := parseFloatVector3Space(norm)
-			if err != nil {
-				return fmt.Errorf("parseLine: line=%d bad vertex normal=[%s]: %v", p.lineCount, norm, err), NON_FATAL
-			}
-			p.normCoord = append(p.normCoord, float32(n[0]), float32(n[1]), float32(n[2]))
-		*/
 	default:
-		return fmt.Errorf("parseLine %v: [%v]: unexpected", p.lineCount, line), NON_FATAL
+		return ErrNonFatal, fmt.Errorf("parseLine %v: [%v]: unexpected", p.lineCount, line)
 	}
 
-	return nil, NON_FATAL
+	return ErrNonFatal, nil
 }
 
 func closeToZero(f float64) bool {
