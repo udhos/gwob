@@ -1,3 +1,9 @@
+/*
+This example shows how to use the 'gwob' package to parse geometry data from OBJ files.
+
+See also: https://github.com/udhos/gwob
+*/
+
 package main
 
 import (
