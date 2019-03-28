@@ -3,7 +3,7 @@ Package 'gwob' is a pure Go parser for Wavefront .OBJ 3D geometry file format.
 
 Example:
 
-    // Error handled omitted for simplicity.
+    // Error handling omitted for simplicity.
 
     import "github.com/udhos/gwob"
 

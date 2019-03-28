@@ -27,7 +27,7 @@ Import the package in your Go program:
 
 Example:
 
-    // Error handled omitted for simplicity.
+    // Error handling omitted for simplicity.
 
     import "github.com/udhos/gwob"
 
