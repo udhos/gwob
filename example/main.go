@@ -31,14 +31,14 @@ func main() {
 		return
 	}
 
+	defer inputObj.Close()
+
 	// Load OBJ
 	o, errObj := gwob.NewObjFromReader(fileObj, bufio.NewReader(inputObj), options)
 	if errObj != nil {
 		log.Printf("obj: parse error input=%s: %v", fileObj, errObj)
 		return
 	}
-
-	inputObj.Close()
 
 	// Open MTL file
 	fileMtl := o.Mtllib
@@ -48,14 +48,14 @@ func main() {
 		return
 	}
 
+	defer inputMtl.Close()
+
 	// Load material lib
 	lib, errMtl := gwob.ReadMaterialLibFromReader(bufio.NewReader(inputMtl), options)
 	if errMtl != nil {
 		log.Printf("mtl: parse error input=%s: %v", fileMtl, errMtl)
 		return
 	}
-
-	inputMtl.Close()
 
 	// Scan OBJ groups
 	for _, g := range o.Groups {
