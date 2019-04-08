@@ -20,7 +20,6 @@ Example:
 
 See also: https://github.com/udhos/gwob
 */
-
 package gwob
 
 import (
