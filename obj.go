@@ -1,5 +1,5 @@
 /*
-Package 'gwob' is a pure Go parser for Wavefront .OBJ 3D geometry file format.
+Package gwob is a pure Go parser for Wavefront .OBJ 3D geometry file format.
 
 Example:
 
@@ -11,7 +11,7 @@ Example:
 
     options := &gwob.ObjParserOptions{} // parser options
 
-    o, errObj := gwob.NewObjFromReader(fileObj, bufio.NewReader(inputObj), options) // parse
+    o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options) // parse
 
     // Scan OBJ groups
     for _, g := range o.Groups {
@@ -23,7 +23,7 @@ See also: https://github.com/udhos/gwob
 package gwob
 
 import (
-	//"bufio"
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -61,7 +61,12 @@ func ReadMaterialLibFromBuf(buf []byte, options *ObjParserOptions) (MaterialLib,
 }
 
 // ReadMaterialLibFromReader parses material lib from a reader.
-func ReadMaterialLibFromReader(rd StringReader, options *ObjParserOptions) (MaterialLib, error) {
+func ReadMaterialLibFromReader(rd io.Reader, options *ObjParserOptions) (MaterialLib, error) {
+	return readLib(bufio.NewReader(rd), options)
+}
+
+// ReadMaterialLibFromStringReader parses material lib from StringReader.
+func ReadMaterialLibFromStringReader(rd StringReader, options *ObjParserOptions) (MaterialLib, error) {
 	return readLib(rd, options)
 }
 
@@ -274,7 +279,12 @@ func NewObjFromBuf(objName string, buf []byte, options *ObjParserOptions) (*Obj,
 }
 
 // NewObjFromReader parses Obj from a reader.
-func NewObjFromReader(objName string, rd StringReader, options *ObjParserOptions) (*Obj, error) {
+func NewObjFromReader(objName string, rd io.Reader, options *ObjParserOptions) (*Obj, error) {
+	return readObj(objName, bufio.NewReader(rd), options)
+}
+
+// NewObjFromStringReader parses Obj from a StringReader.
+func NewObjFromStringReader(objName string, rd StringReader, options *ObjParserOptions) (*Obj, error) {
 	return readObj(objName, rd, options)
 }
 

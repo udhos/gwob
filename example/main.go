@@ -7,7 +7,6 @@ See also: https://github.com/udhos/gwob
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -34,7 +33,7 @@ func main() {
 	defer inputObj.Close()
 
 	// Load OBJ
-	o, errObj := gwob.NewObjFromReader(fileObj, bufio.NewReader(inputObj), options)
+	o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options)
 	if errObj != nil {
 		log.Printf("obj: parse error input=%s: %v", fileObj, errObj)
 		return
@@ -51,7 +50,7 @@ func main() {
 	defer inputMtl.Close()
 
 	// Load material lib
-	lib, errMtl := gwob.ReadMaterialLibFromReader(bufio.NewReader(inputMtl), options)
+	lib, errMtl := gwob.ReadMaterialLibFromReader(inputMtl, options)
 	if errMtl != nil {
 		log.Printf("mtl: parse error input=%s: %v", fileMtl, errMtl)
 		return

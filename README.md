@@ -35,7 +35,7 @@ Example:
 
     options := &gwob.ObjParserOptions{} // parser options
 
-    o, errObj := gwob.NewObjFromReader(fileObj, bufio.NewReader(inputObj), options) // parse/load OBJ
+    o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options) // parse/load OBJ
 
     // Scan OBJ groups
     for _, g := range o.Groups {
