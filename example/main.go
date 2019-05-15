@@ -8,7 +8,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/udhos/gwob"
 )
@@ -21,35 +20,18 @@ func main() {
 		Logger:   func(msg string) { fmt.Println(msg) },
 	}
 
-	// Open OBJ file
-	fileObj := "red_cube.obj"
-	inputObj, errOpen := os.Open(fileObj)
-	if errOpen != nil {
-		log.Printf("open obj: %s: %v", fileObj, errOpen)
-		return
-	}
-
-	defer inputObj.Close()
-
 	// Load OBJ
-	o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options)
+	fileObj := "red_cube.obj"
+	o, errObj := gwob.NewObjFromFile(fileObj, options)
 	if errObj != nil {
 		log.Printf("obj: parse error input=%s: %v", fileObj, errObj)
 		return
 	}
 
-	// Open MTL file
 	fileMtl := o.Mtllib
-	inputMtl, errOpenMtl := os.Open(fileMtl)
-	if errOpenMtl != nil {
-		log.Printf("open mtl: %s: %v", fileMtl, errOpenMtl)
-		return
-	}
-
-	defer inputMtl.Close()
 
 	// Load material lib
-	lib, errMtl := gwob.ReadMaterialLibFromReader(inputMtl, options)
+	lib, errMtl := gwob.ReadMaterialLibFromFile(fileMtl, options)
 	if errMtl != nil {
 		log.Printf("mtl: parse error input=%s: %v", fileMtl, errMtl)
 		return

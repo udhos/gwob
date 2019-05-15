@@ -7,11 +7,9 @@ Example:
 
     import "github.com/udhos/gwob"
 
-    inputObj, errOpen := os.Open("gopher.obj") // OBJ file
-
     options := &gwob.ObjParserOptions{} // parser options
 
-    o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options) // parse
+    o, errObj := gwob.NewObjFromFile("gopher.obj", options) // parse
 
     // Scan OBJ groups
     for _, g := range o.Groups {
@@ -28,6 +26,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -68,6 +67,19 @@ func ReadMaterialLibFromReader(rd io.Reader, options *ObjParserOptions) (Materia
 // ReadMaterialLibFromStringReader parses material lib from StringReader.
 func ReadMaterialLibFromStringReader(rd StringReader, options *ObjParserOptions) (MaterialLib, error) {
 	return readLib(rd, options)
+}
+
+// ReadMaterialLibFromFile parses material lib from a file.
+func ReadMaterialLibFromFile(filename string, options *ObjParserOptions) (MaterialLib, error) {
+
+	input, errOpen := os.Open(filename)
+	if errOpen != nil {
+		return NewMaterialLib(), errOpen
+	}
+
+	defer input.Close()
+
+	return ReadMaterialLibFromReader(input, options)
 }
 
 // NewMaterialLib creates a new material lib.
@@ -286,6 +298,19 @@ func NewObjFromReader(objName string, rd io.Reader, options *ObjParserOptions) (
 // NewObjFromStringReader parses Obj from a StringReader.
 func NewObjFromStringReader(objName string, rd StringReader, options *ObjParserOptions) (*Obj, error) {
 	return readObj(objName, rd, options)
+}
+
+// NewObjFromFile parses Obj from a file.
+func NewObjFromFile(filename string, options *ObjParserOptions) (*Obj, error) {
+
+	input, errOpen := os.Open(filename)
+	if errOpen != nil {
+		return nil, errOpen
+	}
+
+	defer input.Close()
+
+	return NewObjFromReader(filename, input, options)
 }
 
 func setupStride(o *Obj) {

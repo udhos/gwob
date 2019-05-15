@@ -31,11 +31,9 @@ Example:
 
     import "github.com/udhos/gwob"
 
-    inputObj, errOpen := os.Open("gopher.obj") // open OBJ file
-
     options := &gwob.ObjParserOptions{} // parser options
 
-    o, errObj := gwob.NewObjFromReader(fileObj, inputObj, options) // parse/load OBJ
+    o, errObj := gwob.NewObjFromFile("gopher.obj", options) // parse/load OBJ
 
     // Scan OBJ groups
     for _, g := range o.Groups {

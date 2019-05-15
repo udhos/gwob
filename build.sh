@@ -6,7 +6,7 @@ msg() {
 }
 
 # this will acidentally install shadow as a dependency 
-go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+hash shadow 2>/dev/null || go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 
 gofmt -s -w ./*.go ./example
 go tool fix ./*.go ./example
