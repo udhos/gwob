@@ -316,14 +316,11 @@ func (o *Obj) ToWriter(w io.Writer) error {
 			fmt.Fprintf(w, "usemtl %s\n", g.Usemtl)
 		}
 		fmt.Fprintf(w, "s %d\n", g.Smooth)
-		for s := g.IndexBegin; s < g.IndexBegin+g.IndexCount; s++ {
-			if (s+1)%3 != 0 {
-				continue
-			}
+		for s := g.IndexBegin; s < g.IndexBegin+g.IndexCount; s += 3 {
 			fmt.Fprintf(w, "f")
-			for ff := s - 2; ff <= s; ff++ {
-				fff := o.Indices[ff] + 1
-				str := strconv.Itoa(fff)
+			for f := s; f < s+3; f++ {
+				ff := o.Indices[f] + 1
+				str := strconv.Itoa(ff)
 				if o.TextCoordFound {
 					if o.NormCoordFound {
 						fmt.Fprintf(w, " %s/%s/%s", str, str, str)
