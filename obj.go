@@ -269,6 +269,68 @@ func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
 	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
 }
 
+// ToFile saves OBJ to file.
+func (o *Obj) ToFile(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return o.ToWriter(f)
+}
+
+// ToWriter writes OBJ to writer stream.
+func (o *Obj) ToWriter(w io.Writer) error {
+
+	fmt.Fprintf(w, "# OBJ exported by gwob - https://github.com/udhos/gwob\n")
+	fmt.Fprintf(w, "\n")
+
+	if o.Mtllib != "" {
+		fmt.Fprintf(w, "mtllib %s\n", o.Mtllib)
+	}
+
+	// write vertex data
+	strides := o.NumberOfElements()
+	for s := 0; s < strides; s++ {
+		stride := s * o.StrideSize / 4
+		v := stride + o.StrideOffsetPosition/4
+		fmt.Fprintf(w, "v %f %f %f\n", o.Coord[v], o.Coord[v+1], o.Coord[v+2])
+
+		if o.TextCoordFound {
+			t := stride + o.StrideOffsetTexture/4
+			fmt.Fprintf(w, "vt %f %f\n", o.Coord[t], o.Coord[t+1])
+		}
+
+		if o.NormCoordFound {
+			n := stride + o.StrideOffsetNormal/4
+			fmt.Fprintf(w, "vn %f %f %f\n", o.Coord[n], o.Coord[n+1], o.Coord[n+2])
+		}
+
+		if f := s + 1; f%3 == 0 {
+			fmt.Fprintf(w, "f")
+			for ff := f - 2; ff <= f; ff++ {
+				str := strconv.Itoa(ff)
+				if o.TextCoordFound {
+					if o.NormCoordFound {
+						fmt.Fprintf(w, " %s/%s/%s", str, str, str)
+					} else {
+						fmt.Fprintf(w, " %s/%s", str, str)
+					}
+				} else {
+					if o.NormCoordFound {
+						fmt.Fprintf(w, " %s//%s", str, str)
+					} else {
+						fmt.Fprintf(w, " %s", str)
+					}
+				}
+			}
+			fmt.Fprintf(w, "\n")
+		}
+	}
+
+	return nil
+}
+
 // NewObjFromVertex creates Obj from vertex data.
 func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
 	o := &Obj{}

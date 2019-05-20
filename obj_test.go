@@ -1,6 +1,7 @@
 package gwob
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 )
@@ -97,6 +98,56 @@ func TestCube(t *testing.T) {
 
 	if o.StrideOffsetNormal != cubeStrideOffsetNormal {
 		t.Errorf("TestCube: stride offset normal: want=%d got=%d", cubeStrideOffsetNormal, o.StrideOffsetNormal)
+	}
+}
+
+func TestCubeWrite(t *testing.T) {
+
+	// load cube
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
+	orig, err := NewObjFromBuf("cube-orig", []byte(cubeObj), &options)
+	if err != nil {
+		t.Errorf("TestCube: NewObjFromBuf: %v", err)
+		return
+	}
+
+	// export cube
+	buf := bytes.Buffer{}
+	errWrite := orig.ToWriter(&buf)
+	if errWrite != nil {
+		t.Errorf("TestCubeWrite: ToWriter: %v", errWrite)
+		return
+	}
+
+	// reload cube
+	o, errParse := NewObjFromReader("cube-reload", &buf, &options)
+	if errParse != nil {
+		t.Errorf("TestCubeWrite: NewObjFromReader: %v", errParse)
+		return
+	}
+
+	if !sliceEqualInt(cubeIndices, o.Indices) {
+		t.Errorf("TestCubeWrite: indices: want=%v got=%v", cubeIndices, o.Indices)
+	}
+
+	if !sliceEqualFloat(cubeCoord, o.Coord) {
+		t.Errorf("TestCubeWrite: coord: want=%d%v got=%d%v", len(cubeCoord), cubeCoord, len(o.Coord), o.Coord)
+	}
+
+	if o.StrideSize != cubeStrideSize {
+		t.Errorf("TestCubeWrite: stride size: want=%d got=%d", cubeStrideSize, o.StrideSize)
+	}
+
+	if o.StrideOffsetPosition != cubeStrideOffsetPosition {
+		t.Errorf("TestCubeWrite: stride offset position: want=%d got=%d", cubeStrideOffsetPosition, o.StrideOffsetPosition)
+	}
+
+	if o.StrideOffsetTexture != cubeStrideOffsetTexture {
+		t.Errorf("TestCubeWrite: stride offset texture: want=%d got=%d", cubeStrideOffsetTexture, o.StrideOffsetTexture)
+	}
+
+	if o.StrideOffsetNormal != cubeStrideOffsetNormal {
+		t.Errorf("TestCubeWrite: stride offset normal: want=%d got=%d", cubeStrideOffsetNormal, o.StrideOffsetNormal)
 	}
 }
 

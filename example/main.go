@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/udhos/gwob"
 )
@@ -48,4 +49,14 @@ func main() {
 
 		log.Printf("obj=%s lib=%s group=%s material=%s NOT FOUND", fileObj, fileMtl, g.Name, g.Usemtl)
 	}
+
+	if len(os.Args) < 2 {
+		log.Printf("no cmd line args - dump to stdout suppressed")
+		return
+	}
+
+	log.Printf("cmd line arg found - dumping to stdout")
+
+	// Dump to stdout
+	o.ToWriter(os.Stdout)
 }
