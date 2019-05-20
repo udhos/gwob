@@ -15,14 +15,19 @@ import (
 
 func main() {
 
+	fileObj := os.Getenv("INPUT")
+	if fileObj == "" {
+		fileObj = "red_cube.obj"
+	}
+	log.Printf("env var INPUT=[%s] using input=%s", os.Getenv("INPUT"), fileObj)
+
 	// Set options
 	options := &gwob.ObjParserOptions{
 		LogStats: true,
-		Logger:   func(msg string) { fmt.Println(msg) },
+		Logger:   func(msg string) { fmt.Fprintln(os.Stderr, msg) },
 	}
 
 	// Load OBJ
-	fileObj := "red_cube.obj"
 	o, errObj := gwob.NewObjFromFile(fileObj, options)
 	if errObj != nil {
 		log.Printf("obj: parse error input=%s: %v", fileObj, errObj)
@@ -35,19 +40,20 @@ func main() {
 	lib, errMtl := gwob.ReadMaterialLibFromFile(fileMtl, options)
 	if errMtl != nil {
 		log.Printf("mtl: parse error input=%s: %v", fileMtl, errMtl)
-		return
-	}
+	} else {
 
-	// Scan OBJ groups
-	for _, g := range o.Groups {
+		// Scan OBJ groups
+		for _, g := range o.Groups {
 
-		mtl, found := lib.Lib[g.Usemtl]
-		if found {
-			log.Printf("obj=%s lib=%s group=%s material=%s MapKd=%s Kd=%v", fileObj, fileMtl, g.Name, g.Usemtl, mtl.MapKd, mtl.Kd)
-			continue
+			mtl, found := lib.Lib[g.Usemtl]
+			if found {
+				log.Printf("obj=%s lib=%s group=%s material=%s MapKd=%s Kd=%v", fileObj, fileMtl, g.Name, g.Usemtl, mtl.MapKd, mtl.Kd)
+				continue
+			}
+
+			log.Printf("obj=%s lib=%s group=%s material=%s NOT FOUND", fileObj, fileMtl, g.Name, g.Usemtl)
 		}
 
-		log.Printf("obj=%s lib=%s group=%s material=%s NOT FOUND", fileObj, fileMtl, g.Name, g.Usemtl)
 	}
 
 	if len(os.Args) < 2 {

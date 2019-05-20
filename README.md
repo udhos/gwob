@@ -47,6 +47,14 @@ Run the example:
     cd example
     go run main.go
 
+You can supply a custom input OBJ by setting the env var INPUT:
+
+    INPUT=gopher.obj go run main.go
+
+If you specify any command line argument, the OBJ will be dumped to stdout:
+
+    go run main.go d
+
 See directory [example](example). 
 
 # Documentation
