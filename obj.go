@@ -305,11 +305,25 @@ func (o *Obj) ToWriter(w io.Writer) error {
 			n := stride + o.StrideOffsetNormal/4
 			fmt.Fprintf(w, "vn %f %f %f\n", o.Coord[n], o.Coord[n+1], o.Coord[n+2])
 		}
+	}
 
-		if f := s + 1; f%3 == 0 {
+	// write group faces
+	for _, g := range o.Groups {
+		if g.Name != "" {
+			fmt.Fprintf(w, "g %s\n", g.Name)
+		}
+		if g.Usemtl != "" {
+			fmt.Fprintf(w, "usemtl %s\n", g.Usemtl)
+		}
+		fmt.Fprintf(w, "s %d\n", g.Smooth)
+		for s := g.IndexBegin; s < g.IndexBegin+g.IndexCount; s++ {
+			if (s+1)%3 != 0 {
+				continue
+			}
 			fmt.Fprintf(w, "f")
-			for ff := f - 2; ff <= f; ff++ {
-				str := strconv.Itoa(ff)
+			for ff := s - 2; ff <= s; ff++ {
+				fff := o.Indices[ff] + 1
+				str := strconv.Itoa(fff)
 				if o.TextCoordFound {
 					if o.NormCoordFound {
 						fmt.Fprintf(w, " %s/%s/%s", str, str, str)
@@ -445,6 +459,9 @@ func readObj(objName string, reader StringReader, options *ObjParserOptions) (*O
 		options.log(fmt.Sprintf("readObj: STATS bigIndexFound=%v groups=%v", o.BigIndexFound, len(o.Groups)))
 		options.log(fmt.Sprintf("readObj: STATS textureCoordFound=%v normalCoordFound=%v", o.TextCoordFound, o.NormCoordFound))
 		options.log(fmt.Sprintf("readObj: STATS stride=%v textureOffset=%v normalOffset=%v", o.StrideSize, o.StrideOffsetTexture, o.StrideOffsetNormal))
+		for _, g := range o.Groups {
+			options.log(fmt.Sprintf("readObj: GROUP name=%s first=%d count=%d", g.Name, g.IndexBegin, g.IndexCount))
+		}
 	}
 
 	return o, nil
