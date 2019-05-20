@@ -104,7 +104,7 @@ func TestCube(t *testing.T) {
 func TestWriteEmpty(t *testing.T) {
 
 	// load
-	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestWriteEmpty NewObjFromBuf: log: %s\n", msg) }}
 	orig, err := NewObjFromBuf("empty", []byte{}, &options)
 	if err != nil {
 		t.Errorf("TestWriteEmpty: NewObjFromBuf: %v", err)
