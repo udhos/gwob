@@ -101,13 +101,39 @@ func TestCube(t *testing.T) {
 	}
 }
 
+func TestWriteEmpty(t *testing.T) {
+
+	// load
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
+	orig, err := NewObjFromBuf("empty", []byte{}, &options)
+	if err != nil {
+		t.Errorf("TestWriteEmpty: NewObjFromBuf: %v", err)
+		return
+	}
+
+	// export
+	buf := bytes.Buffer{}
+	errWrite := orig.ToWriter(&buf)
+	if errWrite != nil {
+		t.Errorf("TestWriteEmpty: ToWriter: %v", errWrite)
+		return
+	}
+
+	// reload
+	_, errParse := NewObjFromReader("emtpy-reload", &buf, &options)
+	if errParse != nil {
+		t.Errorf("TestWriteEmpty: NewObjFromReader: %v", errParse)
+		return
+	}
+}
+
 func TestCubeWrite(t *testing.T) {
 
 	// load cube
 	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestCube NewObjFromBuf: log: %s\n", msg) }}
 	orig, err := NewObjFromBuf("cube-orig", []byte(cubeObj), &options)
 	if err != nil {
-		t.Errorf("TestCube: NewObjFromBuf: %v", err)
+		t.Errorf("TestCubeWrite: NewObjFromBuf: %v", err)
 		return
 	}
 
