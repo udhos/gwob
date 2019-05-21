@@ -106,20 +106,20 @@ func readLib(reader StringReader, options *ObjParserOptions) (MaterialLib, error
 			// parse last line
 			if _, e := parseLibLine(parser, lib, line, lineCount); e != nil {
 				options.log(fmt.Sprintf("readLib: %v", e))
-				return MaterialLib{}, e
+				return lib, e
 			}
 			break // EOF
 		}
 
 		if err != nil {
 			// unexpected IO error
-			return MaterialLib{}, fmt.Errorf("readLib: error: %v", err)
+			return lib, fmt.Errorf("readLib: error: %v", err)
 		}
 
 		if fatal, e := parseLibLine(parser, lib, line, lineCount); e != nil {
 			options.log(fmt.Sprintf("readLib: %v", e))
 			if fatal {
-				return MaterialLib{}, e
+				return lib, e
 			}
 		}
 	}
