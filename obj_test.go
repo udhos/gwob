@@ -127,6 +127,25 @@ func TestWriteEmpty(t *testing.T) {
 	}
 }
 
+func TestWriteBad(t *testing.T) {
+
+	// load
+	orig, err := NewObjFromVertex("bad", []float32{}, []int{0})
+	if err != nil {
+		t.Errorf("TestWriteBad: NewObjFromVertex: %v", err)
+		return
+	}
+
+	// export
+	buf := bytes.Buffer{}
+	errWrite := orig.ToWriter(&buf)
+	if errWrite == nil {
+		t.Errorf("TestWriteBad: unexpected writer success for bad group index count (non multiple of 3)")
+		return
+	}
+
+}
+
 func TestCubeWrite(t *testing.T) {
 
 	// load cube

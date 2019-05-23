@@ -316,7 +316,11 @@ func (o *Obj) ToWriter(w io.Writer) error {
 			fmt.Fprintf(w, "usemtl %s\n", g.Usemtl)
 		}
 		fmt.Fprintf(w, "s %d\n", g.Smooth)
-		for s := g.IndexBegin; s < g.IndexBegin+g.IndexCount; s += 3 {
+		if g.IndexCount%3 != 0 {
+			return fmt.Errorf("group=%s count=%d must be a multiple of 3", g.Name, g.IndexCount)
+		}
+		pastEnd := g.IndexBegin + g.IndexCount
+		for s := g.IndexBegin; s < pastEnd; s += 3 {
 			fmt.Fprintf(w, "f")
 			for f := s; f < s+3; f++ {
 				ff := o.Indices[f] + 1
