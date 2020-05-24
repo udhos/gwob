@@ -248,7 +248,7 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 
 		value, err := parseFloatVectorSpace(Ns, 1)
 		if err != nil {
-			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for D=%s [%s]: %v", lineCount, Ns, line, err)
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Ns=%s [%s]: %v", lineCount, Ns, line, err)
 		}
 
 		p.currMaterial.Ns = float32(value[0])
