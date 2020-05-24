@@ -48,6 +48,7 @@ const (
 type Material struct {
 	Name  string
 	MapKd string
+	MapKa string
 	Kd    [3]float32
 	Ka    [3]float32
 	Ks    [3]float32
@@ -184,6 +185,14 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.MapKd = mapKd
 
 	case strings.HasPrefix(line, "map_Ka "):
+		mapKa := line[7:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_Ka=%s [%s]", lineCount, mapKa, line)
+		}
+
+		p.currMaterial.MapKa = mapKa
+
 	case strings.HasPrefix(line, "map_d "):
 	case strings.HasPrefix(line, "map_Bump "):
 	case strings.HasPrefix(line, "Ns "):
