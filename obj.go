@@ -38,10 +38,35 @@ const (
 )
 
 // Material holds information for a material.
+// Kd - diffuse color.
+// Ka - ambient color.
+// Ks - specular color.
+// Ns - specular exponent.
+// Ni - optical density aka. index of refraction.
+// Illum - illumination model enum id.
+// D / Tr - trasparency (Tr = 1 - D)
+// MapKa - ambient map
+// MapKd - diffuse map
+// MapKs - specular map
+// MapD - scalar procedural texture map
+// Bump/map_Bump - bump texture map - modify surface normal
+// Ke/MapKe - emissive map - clara.io extension
 type Material struct {
 	Name  string
 	MapKd string
+	MapKa string
+	MapKs string
+	MapD  string
+	Bump  string
+	MapKe string
 	Kd    [3]float32
+	Ka    [3]float32
+	Ks    [3]float32
+	Ns    float32
+	Ni    float32
+	Illum int
+	D     float32
+	Tr    float32
 }
 
 // MaterialLib stores materials.
@@ -170,15 +195,147 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.MapKd = mapKd
 
 	case strings.HasPrefix(line, "map_Ka "):
+		mapKa := line[7:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_Ka=%s [%s]", lineCount, mapKa, line)
+		}
+
+		p.currMaterial.MapKa = mapKa
+
+	case strings.HasPrefix(line, "map_Ks "):
+		mapKs := line[7:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_Ks=%s [%s]", lineCount, mapKs, line)
+		}
+
+		p.currMaterial.MapKs = mapKs
+
 	case strings.HasPrefix(line, "map_d "):
+		mapD := line[6:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_D=%s [%s]", lineCount, mapD, line)
+		}
+
+		p.currMaterial.MapD = mapD
+
 	case strings.HasPrefix(line, "map_Bump "):
+		bump := line[9:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for bump=%s [%s]", lineCount, bump, line)
+		}
+
+		p.currMaterial.Bump = bump
+
+	case strings.HasPrefix(line, "bump "):
+		bump := line[5:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for bump=%s [%s]", lineCount, bump, line)
+		}
+
+		p.currMaterial.Bump = bump
+
 	case strings.HasPrefix(line, "Ns "):
+		Ns := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Ns=%s [%s]", lineCount, Ns, line)
+		}
+
+		value, err := parseFloatVectorSpace(Ns, 1)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Ns=%s [%s]: %v", lineCount, Ns, line, err)
+		}
+
+		p.currMaterial.Ns = float32(value[0])
+
 	case strings.HasPrefix(line, "Ka "):
+		Ka := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Ka=%s [%s]", lineCount, Ka, line)
+		}
+
+		color, err := parseFloatVector3Space(Ka)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Ka=%s [%s]: %v", lineCount, Ka, line, err)
+		}
+
+		p.currMaterial.Ka[0] = float32(color[0])
+		p.currMaterial.Ka[1] = float32(color[1])
+		p.currMaterial.Ka[2] = float32(color[2])
+
 	case strings.HasPrefix(line, "Ke "):
+		MapKe := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for MapKe=%s [%s]", lineCount, MapKe, line)
+		}
+
+		p.currMaterial.MapKe = MapKe
+
 	case strings.HasPrefix(line, "Ks "):
+		Ks := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Ks=%s [%s]", lineCount, Ks, line)
+		}
+
+		color, err := parseFloatVector3Space(Ks)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Ks=%s [%s]: %v", lineCount, Ks, line, err)
+		}
+
+		p.currMaterial.Ks[0] = float32(color[0])
+		p.currMaterial.Ks[1] = float32(color[1])
+		p.currMaterial.Ks[2] = float32(color[2])
+
 	case strings.HasPrefix(line, "Ni "):
+		Ni := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Ni=%s [%s]", lineCount, Ni, line)
+		}
+
+		value, err := parseFloatVectorSpace(Ni, 1)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Ni=%s [%s]: %v", lineCount, Ni, line, err)
+		}
+
+		p.currMaterial.Ni = float32(value[0])
+
 	case strings.HasPrefix(line, "d "):
+		D := line[2:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for D=%s [%s]", lineCount, D, line)
+		}
+
+		value, err := parseFloatVectorSpace(D, 1)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for D=%s [%s]: %v", lineCount, D, line, err)
+		}
+
+		p.currMaterial.D = float32(value[0])
+
 	case strings.HasPrefix(line, "illum "):
+		Illum := line[6:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for Illum=%s [%s]", lineCount, Illum, line)
+		}
+
+		value, err := parseFloatVectorSpace(Illum, 1)
+		if err != nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d parsing error for Illum=%s [%s]: %v", lineCount, Illum, line, err)
+		}
+
+		p.currMaterial.Illum = int(value[0])
+
 	case strings.HasPrefix(line, "Tf "):
 	case strings.HasPrefix(line, "Tr "):
 	default:
