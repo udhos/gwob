@@ -5,12 +5,9 @@ msg() {
     echo >&2 "$me:" "$@"
 }
 
-# this will acidentally install shadow as a dependency 
-hash shadow 2>/dev/null || go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-
 gofmt -s -w ./*.go ./example
 go tool fix ./*.go ./example
-go vet -vettool="$(which shadow)" . ./example
+go vet . ./example
 go install
 
 #hash gosimple 2>/dev/null    && gosimple    ./*.go
