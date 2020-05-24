@@ -45,10 +45,14 @@ const (
 // Ni - optical density aka. index of refraction.
 // Illum - illumination model enum id.
 // D / Tr - trasparency (Tr = 1 - D)
+// MapKa - ambient map
+// MapKd - diffuse map
+// MapKs - specular map
 type Material struct {
 	Name  string
 	MapKd string
 	MapKa string
+	MapKs string
 	Kd    [3]float32
 	Ka    [3]float32
 	Ks    [3]float32
@@ -192,6 +196,15 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		}
 
 		p.currMaterial.MapKa = mapKa
+
+	case strings.HasPrefix(line, "map_Ks "):
+		mapKs := line[7:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_Ks=%s [%s]", lineCount, mapKs, line)
+		}
+
+		p.currMaterial.MapKs = mapKs
 
 	case strings.HasPrefix(line, "map_d "):
 	case strings.HasPrefix(line, "map_Bump "):
