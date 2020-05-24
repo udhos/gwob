@@ -48,11 +48,17 @@ const (
 // MapKa - ambient map
 // MapKd - diffuse map
 // MapKs - specular map
+// MapD - scalar procedural texture map
+// Bump/map_Bump - bump texture map - modify surface normal
+// Ke/MapKe - emissive map - clara.io extension
 type Material struct {
 	Name  string
 	MapKd string
 	MapKa string
 	MapKs string
+	MapD  string
+	Bump  string
+	MapKe string
 	Kd    [3]float32
 	Ka    [3]float32
 	Ks    [3]float32
@@ -207,7 +213,32 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.MapKs = mapKs
 
 	case strings.HasPrefix(line, "map_d "):
+		mapD := line[6:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for map_D=%s [%s]", lineCount, mapD, line)
+		}
+
+		p.currMaterial.MapD = mapD
+
 	case strings.HasPrefix(line, "map_Bump "):
+		bump := line[9:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for bump=%s [%s]", lineCount, bump, line)
+		}
+
+		p.currMaterial.Bump = bump
+
+	case strings.HasPrefix(line, "bump "):
+		bump := line[5:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for bump=%s [%s]", lineCount, bump, line)
+		}
+
+		p.currMaterial.Bump = bump
+
 	case strings.HasPrefix(line, "Ns "):
 		Ns := line[3:]
 
@@ -239,6 +270,14 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.Ka[2] = float32(color[2])
 
 	case strings.HasPrefix(line, "Ke "):
+		MapKe := line[3:]
+
+		if p.currMaterial == nil {
+			return ErrNonFatal, fmt.Errorf("parseLibLine: %d undefined material for MapKe=%s [%s]", lineCount, MapKe, line)
+		}
+
+		p.currMaterial.MapKe = MapKe
+
 	case strings.HasPrefix(line, "Ks "):
 		Ks := line[3:]
 
