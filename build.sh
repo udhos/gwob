@@ -1,24 +1,25 @@
 #!/bin/bash
 
-me=$(basename "$0")
-msg() {
-    echo >&2 "$me:" "$@"
-}
+go install golang.org/x/vuln/cmd/govulncheck@latest
 
-gofmt -s -w ./*.go ./example
-go tool fix ./*.go ./example
-go vet . ./example
-go install
+gofmt -s -w .
 
-#hash gosimple 2>/dev/null    && gosimple    ./*.go
-hash golint 2>/dev/null      && golint      ./*.go
-#hash staticcheck 2>/dev/null && staticcheck ./*.go
+revive ./...
 
-#hash gosimple 2>/dev/null    && gosimple    ./example/*.go
-hash golint 2>/dev/null      && golint      ./example/*.go
-#hash staticcheck 2>/dev/null && staticcheck ./example/*.go
+#gocyclo -over 15 .
 
-go test
-go test -bench=.
+go mod tidy
 
-go mod tidy ;# remove non-required modules from dependencies
+govulncheck ./...
+
+go env -w CGO_ENABLED=1
+
+go test -race ./...
+
+go test -race -bench=. ./...
+
+go env -w CGO_ENABLED=0
+
+go install ./...
+
+go env -u CGO_ENABLED

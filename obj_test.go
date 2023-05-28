@@ -120,7 +120,7 @@ func TestWriteEmpty(t *testing.T) {
 	}
 
 	// reload
-	_, errParse := NewObjFromReader("emtpy-reload", &buf, &options)
+	_, errParse := NewObjFromReader("empty-reload", &buf, &options)
 	if errParse != nil {
 		t.Errorf("TestWriteEmpty: NewObjFromReader: %v", errParse)
 		return
