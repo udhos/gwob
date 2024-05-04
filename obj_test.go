@@ -249,7 +249,10 @@ s 1
 
 	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestMisc NewObjFromBuf: log: %s\n", msg) }}
 
-	NewObjFromBuf("TestMisc local str obj", []byte(str), &options)
+	_, err := NewObjFromBuf("TestMisc local str obj", []byte(str), &options)
+	if err != nil {
+		t.Errorf("NewObjFromBuf: %v", err)
+	}
 }
 
 func TestSkippedUV1(t *testing.T) {
@@ -287,6 +290,36 @@ func TestSkippedUV2(t *testing.T) {
 
 	if !sliceEqualFloat(skippedUV2Coord, o.Coord) {
 		t.Errorf("TestSkippedUV2: coord: want=%v got=%v", skippedUV2Coord, o.Coord)
+	}
+}
+
+func TestSmoothGroup1(t *testing.T) {
+
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestSmoothGroup1 NewObjFromBuf: log: %s\n", msg) }}
+
+	o, err := NewObjFromBuf("smoothGroupObj1", []byte(smoothGroupObj1), &options)
+	if err != nil {
+		t.Errorf("TestSmoothGroup1: NewObjFromBuf: %v", err)
+		return
+	}
+
+	if len(o.Groups) != 1 {
+		t.Errorf("smoothGroupObj1: groups: want=%d got=%d", 1, len(o.Groups))
+	}
+}
+
+func TestSmoothGroup2(t *testing.T) {
+
+	options := ObjParserOptions{LogStats: LogStats, Logger: func(msg string) { fmt.Printf("TestSmoothGroup1 NewObjFromBuf: log: %s\n", msg) }}
+
+	o, err := NewObjFromBuf("smoothGroupObj1", []byte(smoothGroupObj2), &options)
+	if err != nil {
+		t.Errorf("TestSmoothGroup2: NewObjFromBuf: %v", err)
+		return
+	}
+
+	if len(o.Groups) != 1 {
+		t.Errorf("smoothGroupObj2: groups: want=%d got=%d", 1, len(o.Groups))
 	}
 }
 
@@ -450,3 +483,68 @@ f 1//1 2//2 3//3
 
 var skippedUV2Indices = []int{0, 1, 2}
 var skippedUV2Coord = []float32{1, 1, 1, 1, 0, 0, 2, 2, 2, 0, 1, 0, 3, 3, 3, 0, 0, 1}
+
+const smoothGroupObj1 = `
+o Cube.001
+v 1 -1 1
+v -1 -1 1
+v 1 1 1
+v -1 1 1
+v 1 -1 -1
+v 1 1 -1
+v -1 1 -1
+v -1 -1 -1
+vt 0 0
+vt 1 0
+vt 0 1
+vt 1 1
+vt 1 0
+vt 1 1
+vt 0 1
+vt 0 0
+vn 0 -1 0
+vn 0 1 0
+vn 1 0 0
+vn -1 0 0
+vn 0 0 -1
+vn 0 0 1
+f 1/1/6 3/3/6 4/4/6
+f 1/1/6 4/4/6 2/2/6
+f 1/1/1 2/2/1 8/8/1
+f 1/1/1 8/8/1 5/5/1
+f 1/1/3 5/5/3 6/6/3
+f 1/1/3 6/6/3 3/3/3
+`
+
+const smoothGroupObj2 = `
+o Cube.001
+v 1 -1 1
+v -1 -1 1
+v 1 1 1
+v -1 1 1
+v 1 -1 -1
+v 1 1 -1
+v -1 1 -1
+v -1 -1 -1
+vt 0 0
+vt 1 0
+vt 0 1
+vt 1 1
+vt 1 0
+vt 1 1
+vt 0 1
+vt 0 0
+vn 0 -1 0
+vn 0 1 0
+vn 1 0 0
+vn -1 0 0
+vn 0 0 -1
+vn 0 0 1
+s 1
+f 1/1/6 3/3/6 4/4/6
+f 1/1/6 4/4/6 2/2/6
+f 1/1/1 2/2/1 8/8/1
+f 1/1/1 8/8/1 5/5/1
+f 1/1/3 5/5/3 6/6/3
+f 1/1/3 6/6/3 3/3/3
+`
