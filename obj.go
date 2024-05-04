@@ -868,6 +868,10 @@ func parseLine(p *objParser, o *Obj, line string, options *ObjParserOptions) (bo
 		smooth := line[2:]
 		if s, err := smoothGroup(smooth); err == nil {
 			if p.currGroup.Smooth != s {
+				if p.currGroup.IndexCount == 0 {
+					// mark previous empty group as bogus
+					p.currGroup.IndexCount = -1
+				}
 				// create new group
 				p.currGroup = o.newGroup(p.currGroup.Name, p.currGroup.Usemtl, len(o.Indices), s)
 			}
