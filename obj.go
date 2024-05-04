@@ -504,7 +504,7 @@ func (o *Obj) ToWriter(w io.Writer) error {
 }
 
 // NewObjFromVertex creates Obj from vertex data.
-func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
+func NewObjFromVertex(coord []float32, indices []int) (*Obj, error) {
 	o := &Obj{}
 
 	group := o.newGroup("", "", 0, 0)
@@ -574,7 +574,7 @@ func readObj(objName string, reader StringReader, options *ObjParserOptions) (*O
 	o := &Obj{}
 
 	// 1. vertex-only parsing
-	if fatal, err := readLines(p, o, reader, options); err != nil {
+	if fatal, err := readLines(p, reader, options); err != nil {
 		if fatal {
 			return o, err
 		}
@@ -586,7 +586,7 @@ func readObj(objName string, reader StringReader, options *ObjParserOptions) (*O
 	p.normLines = 0
 
 	// 2. full parsing
-	if fatal, err := scanLines(p, o, reader, options); err != nil {
+	if fatal, err := scanLines(p, o, options); err != nil {
 		if fatal {
 			return o, err
 		}
@@ -625,7 +625,7 @@ func readObj(objName string, reader StringReader, options *ObjParserOptions) (*O
 	return o, nil
 }
 
-func readLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOptions) (bool, error) {
+func readLines(p *objParser, reader StringReader, options *ObjParserOptions) (bool, error) {
 	p.lineCount = 0
 
 	for {
@@ -633,7 +633,7 @@ func readLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOpti
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
 			// parse last line
-			if fatal, e := parseLineVertex(p, o, line, options); e != nil {
+			if fatal, e := parseLineVertex(p, line, options); e != nil {
 				options.log(fmt.Sprintf("readLines: %v", e))
 				return fatal, e
 			}
@@ -645,7 +645,7 @@ func readLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOpti
 			return ErrFatal, fmt.Errorf("readLines: error: %v", err)
 		}
 
-		if fatal, e := parseLineVertex(p, o, line, options); e != nil {
+		if fatal, e := parseLineVertex(p, line, options); e != nil {
 			options.log(fmt.Sprintf("readLines: %v", e))
 			if fatal {
 				return fatal, e
@@ -657,7 +657,7 @@ func readLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOpti
 }
 
 // parseLineVertex: parse only vertex lines
-func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOptions) (bool, error) {
+func parseLineVertex(p *objParser, rawLine string, options *ObjParserOptions) (bool, error) {
 	line := strings.TrimSpace(rawLine)
 
 	p.lineBuf = append(p.lineBuf, line) // save line for 2nd pass
@@ -721,7 +721,7 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 	return ErrNonFatal, nil
 }
 
-func scanLines(p *objParser, o *Obj, reader StringReader, options *ObjParserOptions) (bool, error) {
+func scanLines(p *objParser, o *Obj, options *ObjParserOptions) (bool, error) {
 
 	p.currGroup = o.newGroup("", "", 0, 0)
 

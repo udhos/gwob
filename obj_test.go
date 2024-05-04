@@ -130,7 +130,7 @@ func TestWriteEmpty(t *testing.T) {
 func TestWriteBad(t *testing.T) {
 
 	// load
-	orig, err := NewObjFromVertex("bad", []float32{}, []int{0})
+	orig, err := NewObjFromVertex([]float32{}, []int{0})
 	if err != nil {
 		t.Errorf("TestWriteBad: NewObjFromVertex: %v", err)
 		return
